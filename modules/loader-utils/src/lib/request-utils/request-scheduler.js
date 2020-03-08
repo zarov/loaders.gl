@@ -52,10 +52,7 @@ export default class RequestScheduler {
   scheduleRequest(handle, getPriority = () => 0) {
     // Allows throttling to be disabled
     if (!this.props.throttleRequests) {
-      this._startRequest(handle);
-      return Promise.resolve({
-        done: () => this._endRequest(handle)
-      });
+      return this._resolveRequest(handle);
     }
 
     // dedupe
@@ -77,6 +74,19 @@ export default class RequestScheduler {
   }
 
   // PRIVATE
+  _resolveRequest(handle, resolve) {
+    let isDone = false;
+    const done = () => {
+      // can only be called once
+      if (!isDone) {
+        isDone = true;
+        this._endRequest(handle);
+      }
+    };
+
+    this._startRequest(handle);
+    return resolve ? resolve({done}) : Promise.resolve({done});
+  }
 
   // Called by an application to mark that it is actively making a request
   _startRequest(handle) {
@@ -113,10 +123,7 @@ export default class RequestScheduler {
     for (let i = 0; i < freeSlots; ++i) {
       if (this.requestQueue.length > 0) {
         const request = this.requestQueue.shift();
-        this._startRequest(request.handle);
-        request.resolve({
-          done: () => this._endRequest(request.handle)
-        });
+        this._resolveRequest(request.handle, request.resolve);
       }
     }
 
