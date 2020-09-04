@@ -523,6 +523,10 @@ export default class Tileset3D {
       this._queryParams.v = this.asset.tilesetVersion;
     }
 
+    if ('gltfUpAxis' in this.asset) {
+      this._gltfUpAxis = this.asset.gltfUpAxis;
+    }
+
     // TODO - ion resources have a credits property we can use for additional attribution.
     this.credits = {
       attributions: this.options.attributions || []
